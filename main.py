@@ -114,7 +114,7 @@ FLOOR_Y = 800
 
 # FISICA
 FPS = 60
-GRAVITY = 1.6
+GRAVITY = 1.9
 
 # --- FUNCOES UTILITARIAS ---
 def hex_to_rgb(hex_color):
