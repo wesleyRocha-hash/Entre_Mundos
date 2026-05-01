@@ -1,0 +1,14 @@
+# Arquivos do Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Ambientes Virtuais
+venv/
+.venv/
+env/
+
+# Builds e Distribuições (para quando for gerar o executável ou rodar o pygbag)
+build/
+dist/
+*.egg-info/
