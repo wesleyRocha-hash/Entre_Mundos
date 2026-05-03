@@ -686,7 +686,7 @@ class Decoration:
         self.y = y
         self.theme = theme
         self.type = dec_type
-        self.scale = random.uniform(0.6, 1.2)
+        self.scale = random.uniform(3.2, 4.0)
         self.flip = random.choice([True, False])
         
     def draw(self, surface, cam_x, cam_y):
@@ -810,7 +810,7 @@ class Platform:
     def trigger(self):
         if self.is_trap and self.trap_state == 'idle':
             self.trap_state = 'shaking'
-            self.trap_timer = 30 # Meio segundo de aviso (treme antes de cair)
+            self.trap_timer = 60 # Meio segundo de aviso (treme antes de cair)
 
     def update(self):
         if self.is_trap:
@@ -1424,13 +1424,15 @@ class Player:
         for p in self.game.platforms:
             if rect.colliderect(p.rect):
                 if is_horizontal:
-                    if self.vx > 0: self.x = p.left - self.w/2
-                    elif self.vx < 0: self.x = p.right + self.w/2
-                    self.vx = 0
+                    if self.y > p.top + 10: 
+                        if self.vx > 0: self.x = p.left - self.w/2
+                        elif self.vx < 0: self.x = p.right + self.w/2
+                        self.vx = 0
                 else:
                     if self.vy > 0:
                         self.y = p.top; self.vy = 0; self.on_ground = True
-                        p.trigger() # Armadilha treme se for pisada!
+                        if p.is_trap and p.w < 600:
+                         p.trigger() # Armadilha treme se for pisada!
                         self.air_jumps_left = 1 
                         if self.is_ground_pounding:
                             if getattr(self, 'is_ult_smashing', False):
@@ -1616,6 +1618,8 @@ class Enemy:
     def __init__(self, game, x, y, theme, type='basic'):
         self.game = game; self.x, self.y = x, y; self.vx, self.vy = 0, 0
         
+        escala = 1.5
+
         if type == 'boss': self.w, self.h = 140, 160
         elif type == 'tank': self.w, self.h = 60, 60
         elif type == 'charger': self.w, self.h = 70, 50
@@ -2183,8 +2187,18 @@ class Game:
                 
                 p_x = lx + gap
                 p_y = ly
+
+                #GERAMOS A COLINA (HILL) PRIMEIRO
+                has_hill = False
+                hx, hy, hw = 0, 0, 0
+                if not is_gap and w > 600 and random.random() < 0.4:
+                    has_hill = True
+                    hw = random.randint(200, 350)
+                    hx = lx + gap + (w//2) - (hw//2)
+                    hy = ly - random.choice([60, 90, 120])
+                    self.platforms.append(Platform(hx, hy, hw, 400))
                 
-                # ADICAO DE DECORACOES E NATUREZA
+                #ADIÇÃO DE DECORAÇÕES E NATUREZA (Com ajuste Y para não ficar dentro da colina)
                 if not is_trap and w > 100:
                     num_decorations = random.randint(0, int(w / 150) + 1)
                     for _ in range(num_decorations):
@@ -2198,26 +2212,30 @@ class Game:
                             dec_type = random.choices(['spire', 'plant'], weights=[60, 40])[0]
                             
                         dx = p_x + random.randint(20, int(w - 20))
-                        self.decorations.append(Decoration(dx, p_y, theme_name, dec_type))
+                        
+                        # AJUSTE: Se o X cair dentro da colina, colocamos no topo dela (hy)
+                        dy = hy if (has_hill and hx < dx < hx + hw) else p_y
+                        self.decorations.append(Decoration(dx, dy, theme_name, dec_type))
 
-                # ADICAO DAS ARMADILHAS DE BIOMA 
+                #ADIÇÃO DAS ARMADILHAS DE BIOMA (Biome Traps), COM AJUSTE DE POSICIONAMENTO PARA NÃO FICAR DENTRO DA COLINA
                 if theme_name == 'forest' and w > 100 and random.random() < 0.5:
-                    self.biome_traps.append(BiomeTrap(self, p_x + random.randint(20, int(w - 60)), p_y, theme_name))
+                    tx = p_x + random.randint(20, int(w - 60))
+                    ty = hy if (has_hill and hx < tx < hx + hw) else p_y
+                    self.biome_traps.append(BiomeTrap(self, tx, ty, theme_name))
+                    
                 if theme_name == 'cave' and random.random() < 0.6:
-                    self.biome_traps.append(BiomeTrap(self, p_x + random.randint(20, int(w - 50)), p_y - random.randint(250, 400), theme_name, 30, 80))
+                    tx = p_x + random.randint(20, int(w - 50))
+                    # Estalactites baseiam a altura do teto a partir do chão em que nascem
+                    ty = hy if (has_hill and hx < tx < hx + hw) else p_y
+                    self.biome_traps.append(BiomeTrap(self, tx, ty - random.randint(250, 400), theme_name, 30, 80))
+                    
                 if theme_name == 'volcano' and is_gap and gap > 100:
                     self.biome_traps.append(BiomeTrap(self, lx + gap/2 - 30, FLOOR_Y + 100, theme_name, 60, 450))
+                    
                 if theme_name == 'electric' and not is_trap and random.random() < 0.4:
-                    self.biome_traps.append(BiomeTrap(self, p_x, p_y, theme_name, w, 20))
-                
-                has_hill = False
-                hx, hy, hw = 0, 0, 0
-                if not is_gap and w > 600 and random.random() < 0.4:
-                    has_hill = True
-                    hw = random.randint(200, 350)
-                    hx = lx + gap + (w//2) - (hw//2)
-                    hy = ly - random.choice([60, 90, 120])
-                    self.platforms.append(Platform(hx, hy, hw, 400))
+                    # Choque visualmente fica estranho se cruzar a colina, então não geramos se tiver colina
+                    if not has_hill:
+                        self.biome_traps.append(BiomeTrap(self, p_x, p_y, theme_name, w, 20))
                 
                 num_enemies = 1 + int(self.level * 0.5)
                 if num_enemies > 6: num_enemies = 6
