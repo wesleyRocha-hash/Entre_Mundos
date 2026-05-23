@@ -60,4 +60,6 @@ Escolha o herói que melhor se adapta ao seu estilo de jogo:
 ## 🚀 Como Executar
 1. Clone o repositório: `git clone https://github.com/wesleyRocha-hash/Entre_Mundos.git`
 2. Instale as dependências: `pip install pygame`
-3. Execute o jogo: `py main.py` 
+3. Execute o jogo: `py main.py`
+
+   # Observação: O jogo ainda está em desenvolvimento.
