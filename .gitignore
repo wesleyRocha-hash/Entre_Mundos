@@ -8,7 +8,7 @@ venv/
 .venv/
 env/
 
-# Builds e Distribuições (para quando for gerar o executável ou rodar o pygbag)
+# Builds e Distribuições 
 build/
 dist/
 *.egg-info/
