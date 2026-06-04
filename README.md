@@ -13,6 +13,8 @@ Desde o princípio dos tempos, o equilíbrio do universo era mantido por quatro 
 
 Apenas a lendária Liga dos Heróis pode restaurar a ordem. Você deve assumir o manto de um campeão e atravessar os perigosos portais dimensionais. Sua missão é sobreviver às hordas de inimigos, desviar de armadilhas mortais e recuperar relíquias de poder imensurável, como o místico Selo do Abismo e a lendária Coroa dos Deuses, para reerguer as fronteiras da realidade.
 
+
+
 ---
 
 ## ✨ Funcionalidades
